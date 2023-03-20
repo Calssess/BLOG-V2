@@ -1,0 +1,71 @@
+include:
+  # nodejs
+  - project: "bhpc/ci"
+    file: "/nodejs/nodejs18-ssr.yml"
+
+  # k8s
+  - project: 'bhpc/ci'
+    file: '/helm/base.yml'
+
+# A. MASTER BRANCH
+deploy:affiliate:production:
+  extends:
+    - .deploy_production
+  variables:
+    APP_ENTRY: "activity-web-test"
+
+# B. DEV BRANCH
+deploy:affiliate:development:
+  extends:
+    - .deploy_development
+  variables:
+    APP_ENTRY: "activity-web-test"
+  only:
+    refs:
+      - dev
+      - /^test\/.*$/
+
+#####################################
+#####################################
+#####################################
+
+.deploy_production:
+  extends:
+    - .helm_deploy
+  variables:
+    KUBE_CONFIG: "${MASTER_KUBE_CONFIG}"
+    ENV_NAME: "${MASTER_ENV_NAME}"
+    INCLUDEFILEBEAT: "true"
+  # related to environment and deployments
+  # https://docs.gitlab.com/ee/ci/environments/
+  environment:
+    name: ${MASTER_ENV_NAME}
+    url: https://${MASTER_ENV_DOMAIN}
+  when: on_success
+  only:
+    refs:
+      - master
+    # only:variables
+    # control when to add jobs to a pipeline, based on the status of CI/CD variables
+    variables:
+      - $ENV_NAME == "${MASTER_ENV_NAME}"
+
+.deploy_development:
+  extends:
+    - .helm_deploy
+  variables:
+    KUBE_CONFIG: "${DEV_KUBE_CONFIG}"
+    ENV_NAME: "${DEV_ENV_NAME}"
+    INCLUDEFILEBEAT: "true"
+  # related to environment and deployments
+  # https://docs.gitlab.com/ee/ci/environments/
+  environment:
+    name: ${DEV_ENV_NAME}
+    url: https://${DEV_ENV_DOMAIN}
+  when: on_success
+  only:
+    refs:
+      - dev
+      - /^test\/.*$/
+    variables:
+      - $ENV_NAME == "${DEV_ENV_NAME}"
