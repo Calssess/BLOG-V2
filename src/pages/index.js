@@ -13,7 +13,7 @@ export default function Home({data}) {
       </Head>
       <main className={styles.main}>
         <div className={styles.description}>
-          <h1>{data.titleTag}</h1>
+          <h1>WONYONG TEST</h1>
           <p>
             Get started by editing&nbsp;
             <code className={styles.code}>src/pages/index.js</code>
